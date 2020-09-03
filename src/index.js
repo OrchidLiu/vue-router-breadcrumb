@@ -1,7 +1,5 @@
 /**
  * JavaScript Document
- * Version: 1.0.0
- * Date: 8/31/2020
  * Author: Liu Changkun
  * Copyright: www.east.net
  */
@@ -11,9 +9,17 @@ import _ from "lodash";
 let _Vue;
 let _installed;
 const defaultOptions = { title: "name", omit: 1, length: 0, query: {} };
+const deleteRedirect = value => {
+  if (value.redirect) {
+    // eslint-disable-next-line no-unused-vars
+    let { redirect, ...noRedirectValue } = value;
+    return _.cloneDeepWith(noRedirectValue, deleteRedirect);
+  }
+};
 
 export default class Breadcrumb {
-  #options;
+  #options = null;
+  #matcher = null;
   constructor(options) {
     this.#options = { ...defaultOptions, ...options };
   }
@@ -31,7 +37,9 @@ export default class Breadcrumb {
       if (this.#options.length > 0) {
         matched = matched.slice(0, length);
       }
-      let data = matched.map(route => this.getLocation(route, params, query));
+      let data = matched.map(route =>
+        this.getLocation(vm, route, params, query)
+      );
       if (_.isFunction(vm.$options.breadcrumbData)) {
         data = vm.$options.breadcrumbData.call(vm, data);
       }
@@ -42,13 +50,14 @@ export default class Breadcrumb {
 
   /**
    * 计算导航目标
+   * @param vm
    * @param route
    * @param routeParams
    * @param routeQuery
    * @returns {{path: string, query: {}, title: any}}
    */
-  getLocation(route, routeParams, routeQuery) {
-    const title = this.getTitle(route);
+  getLocation(vm, route, routeParams, routeQuery) {
+    const title = this.getTitle(vm, route);
     const path = route.path.replace(
       /:([^:/]+)/g,
       (m, p) => routeParams[p] ?? m
@@ -70,13 +79,24 @@ export default class Breadcrumb {
 
   /**
    * 计算导航标题
+   * @param vm
    * @param route
    * @returns {string}
    */
-  getTitle(route) {
-    return _.isFunction(this.#options.title)
-      ? this.#options.title(route)
-      : _.get(route, this.#options.title);
+  getTitle(vm, route) {
+    const matched = vm._routerRoot._route.matched;
+    const matchedRouted = matched.find(r => r.path === route.path);
+    const instance = matchedRouted?.instances?.default;
+    const breadcrumbTitle = instance?.$options.breadcrumbTitle;
+    if (_.isFunction(breadcrumbTitle)) {
+      return breadcrumbTitle.call(instance, instance);
+    } else if (_.isString(breadcrumbTitle)) {
+      return breadcrumbTitle;
+    } else if (_.isFunction(this.#options.title)) {
+      this.#options.title(route);
+    } else {
+      return _.get(route, this.#options.title);
+    }
   }
 
   /**
@@ -92,11 +112,30 @@ export default class Breadcrumb {
       }
       let { title, ...to } = item;
       if (!title && (to.path || to.name)) {
-        const route = vm._routerRoot._router.match(to);
-        title = this.getTitle(route);
+        const route = this.getRoute(vm, to);
+        title = this.getTitle(vm, route);
       }
       return { title, to, level };
     });
+  }
+
+  /**
+   * 获取路由对象
+   * @param vm
+   * @param location
+   * @returns {*}
+   */
+  getRoute(vm, location) {
+    if (this.#matcher === null) {
+      let { constructor, options } = vm._routerRoot._router;
+      options = _.cloneDeepWith(options, deleteRedirect);
+      this.#matcher = new constructor(options);
+    }
+    let route = this.#matcher.match(location);
+    if (!route.matched.length) {
+      route = vm._routerRoot._router.match(location);
+    }
+    return route;
   }
 
   /**
