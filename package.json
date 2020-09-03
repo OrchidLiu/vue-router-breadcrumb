@@ -1,0 +1,40 @@
+{
+    "name": "vue-router-breadcrumb",
+    "version": "1.0.0",
+    "description": "Generate breadcrumb navigation data based on Vue Router.",
+    "main": "dist/index.js",
+    "scripts": {
+        "build": "npx babel src/index.js --out-file dist/index.js",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/OrchidLiu/vue-router-breadcrumb.git"
+    },
+    "keywords": [
+        "vue",
+        "vue-router",
+        "breadcrumb"
+    ],
+    "author": "Liu Changkun",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/OrchidLiu/vue-router-breadcrumb/issues"
+    },
+    "homepage": "https://github.com/OrchidLiu/vue-router-breadcrumb#readme",
+    "devDependencies": {
+        "@babel/cli": "^7.11.5",
+        "@babel/core": "^7.11.5",
+        "@babel/preset-env": "^7.11.5",
+        "babel-eslint": "^10.1.0",
+        "eslint": "^6.7.2",
+        "eslint-plugin-prettier": "^3.1.1",
+        "prettier": "^1.19.1"
+    },
+    "dependencies": {
+        "lodash": "^4.17.20"
+    },
+    "peerDependencies": {
+        "vue-router": "^3.0.0"
+    }
+}
