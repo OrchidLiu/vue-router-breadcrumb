@@ -93,7 +93,7 @@ export default class Breadcrumb {
     } else if (_.isString(breadcrumbTitle)) {
       return breadcrumbTitle;
     } else if (_.isFunction(this.#options.title)) {
-      this.#options.title(route);
+      return this.#options.title(route);
     } else {
       return _.get(route, this.#options.title);
     }
